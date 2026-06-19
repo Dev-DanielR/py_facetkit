@@ -1,0 +1,51 @@
+#===============================================================================
+# DEPENDENCIES
+
+import glom
+
+from typing import Dict, Any, Optional
+from py_container.types import Component, Facet
+
+#===============================================================================
+# DEFINITIONS
+
+class Container:
+
+    def __init__(self, config: Dict[str, Any]):
+        self.config     : Dict[str, Any]       = config
+        self.facets     : Dict[str, Facet]     = {}
+        self.components : Dict[str, Component] = {}
+
+    # Public API ===============================================================
+
+    def get(self, path: str, default: Any = None) -> Any:
+        """Retrieve from container using glom."""
+
+        if not path: return self
+        try:
+            return glom.glom(self.__dict__, path)
+        except (glom.PathAccessError, glom.GlomError):
+            return default
+        except Exception:
+            return default
+
+    def mount_facet(self, name: str, facet: Facet) -> None:
+        if name in self.facets: self.unmount_facet(name)
+        self.facets[name] = facet
+
+    def unmount_facet(self, name: str) -> None:
+        facet = self.facets.pop(name, None)
+        if facet: facet.clear()
+
+    def add_component(self, name: str, comp: Component) -> None:
+        """Register a component and attach it to this container."""
+
+        if name in self.components: self.remove_component(name)
+        comp.attach(self)
+        self.components[name] = comp
+
+    def remove_component(self, name: str) -> None:
+        """Remove a component and detach it from this container."""
+
+        comp = self.components.pop(name, None)
+        if comp: comp.detach(self)
