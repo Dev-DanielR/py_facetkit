@@ -44,8 +44,28 @@ class TestContainerGet:
     def test_missing_path_returns_default(self, container):
         assert container.get("config.missing", default="fallback") == "fallback"
 
-    def test_missing_path_returns_none_by_default(self, container):
-        assert container.get("config.missing") is None
+    def test_missing_path_returns_none_when_default_is_none(self, container):
+        assert container.get("config.missing", default=None) is None
+
+    def test_missing_path_raises_without_default(self, container):
+        with pytest.raises(glom.PathAccessError):
+            container.get("config.missing")
+
+    def test_glom_error_raises_without_default(self, container, monkeypatch):
+        def raise_glom_error(*_args, **_kwargs):
+            raise glom.GlomError("boom")
+
+        monkeypatch.setattr(container_module.glom, "glom", raise_glom_error)
+        with pytest.raises(glom.GlomError):
+            container.get("config.app.name")
+
+    def test_unexpected_exception_raises_without_default(self, container, monkeypatch):
+        def raise_runtime_error(*_args, **_kwargs):
+            raise RuntimeError("unexpected")
+
+        monkeypatch.setattr(container_module.glom, "glom", raise_runtime_error)
+        with pytest.raises(RuntimeError):
+            container.get("config.app.name")
 
     def test_glom_error_returns_default(self, container, monkeypatch):
         def raise_glom_error(*_args, **_kwargs):

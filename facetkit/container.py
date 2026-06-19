@@ -3,11 +3,13 @@
 
 import glom
 
-from typing import Dict, Any, Optional
+from typing import Dict, Any
 from facetkit.types import Component, Facet
 
 #===============================================================================
 # DEFINITIONS
+
+_UNSET = object()
 
 class Container:
 
@@ -18,15 +20,21 @@ class Container:
 
     # Public API ===============================================================
 
-    def get(self, path: str, default: Any = None) -> Any:
-        """Retrieve from container using glom."""
+    def get(self, path: str, default: Any = _UNSET) -> Any:
+        """Retrieve from container using glom.
+
+        Raises glom errors when *default* is omitted. Pass *default* to
+        return that value instead when the path cannot be resolved.
+        """
 
         if not path: return self
         try:
             return glom.glom(self.__dict__, path)
         except (glom.PathAccessError, glom.GlomError):
+            if default is _UNSET: raise
             return default
         except Exception:
+            if default is _UNSET: raise
             return default
 
     def mount_facet(self, name: str, facet: Facet) -> None:

@@ -117,7 +117,7 @@ app.unmount_facet("cli")
 - **Duplicate keys** — registering the same name again overwrites the previous entry (last wins).
 - **Unmount** — `unmount_facet` clears that facet's registries. Attached components are not automatically detached; call `remove_component` first if you need a full teardown.
 - **Facet names** — the mount name is arbitrary (`app.mount_facet("cli", CliFacet())`). The library does not enforce that the name matches the facet type.
-- **Missing facets** — `app.facets["cli"]` raises `KeyError`; `app.get("facets.cli")` returns `None`.
+- **Missing facets** — `app.facets["cli"]` raises `KeyError`; `app.get("facets.cli")` raises `PathAccessError`; `app.get("facets.cli", default=None)` returns `None`.
 
 ## Introspection with `get()`
 
@@ -132,14 +132,19 @@ app.get("facets.cli.commands")     # command registry
 app.get("facets.web.routes.users") # a single route entry
 ```
 
-Missing paths return `default` (or `None`):
+Without `default`, resolution errors propagate (missing paths, glom failures, etc.):
 
 ```python
-app.get("facets.missing")              # None
-app.get("facets.missing", default={})  # {}
+app.get("facets.cli.commands")     # works when the cli facet is mounted
+app.get("facets.missing")          # raises glom.PathAccessError
 ```
 
-`get()` also returns `default` on any internal error while resolving a path, not only missing keys. That keeps introspection safe but can hide bugs — prefer direct attribute access when you want exceptions to surface.
+Pass `default` for optional lookups — any resolution error returns that value:
+
+```python
+app.get("facets.missing", default=None)  # None
+app.get("facets.missing", default={})    # {}
+```
 
 Direct dict access also works when you know a facet is mounted:
 
