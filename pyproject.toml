@@ -35,6 +35,8 @@ path = "facetkit/__init__.py"
 [project.optional-dependencies]
 dev = [
     "pytest>=8.0",
+    "build>=1.0",
+    "twine>=5.0",
 ]
 
 [tool.hatch.build.targets.wheel]
