@@ -3,7 +3,7 @@ requires = ["hatchling>=1.21"]
 build-backend = "hatchling.build"
 
 [project]
-name = "py-container"
+name = "facetkit"
 dynamic = ["version"]
 description = "A composable dependency container with passive UI and service facets."
 readme = "README.md"

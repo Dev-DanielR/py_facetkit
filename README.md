@@ -1,4 +1,4 @@
-# py-container
+# facetkit
 
 A composable Python container for application state and passive registries.
 Provides basic functionality for CLI commands, TUI screens, GUI widgets, web routes and background services.
@@ -29,13 +29,13 @@ Container
 ## Installation
 
 ```bash
-pip install py-container
+pip install facetkit
 ```
 
 For local development:
 
 ```bash
-git clone https://github.com/Dev-DanielR/facetkit.git
+git clone https://github.com/Dev-DanielR/py_facetkit.git
 cd facetkit
 pip install -e ".[dev]"
 ```
