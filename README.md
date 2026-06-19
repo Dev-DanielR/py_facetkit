@@ -35,15 +35,15 @@ pip install py-container
 For local development:
 
 ```bash
-git clone https://github.com/Dev-DanielR/py_container.git
-cd py_container
+git clone https://github.com/Dev-DanielR/facetkit.git
+cd facetkit
 pip install -e ".[dev]"
 ```
 
 ## Quick start
 
 ```python
-from py_container import Container, CliFacet, WebFacet
+from facetkit import Container, CliFacet, WebFacet
 
 app = Container({"app": {"name": "demo"}})
 
@@ -150,7 +150,7 @@ app.facets["cli"].commands["hello"]
 ## Public API
 
 ```python
-from py_container import (
+from facetkit import (
     Container,
     Component,     # protocol
     Facet,         # protocol

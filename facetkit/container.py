@@ -4,7 +4,7 @@
 import glom
 
 from typing import Dict, Any, Optional
-from py_container.types import Component, Facet
+from facetkit.types import Component, Facet
 
 #===============================================================================
 # DEFINITIONS

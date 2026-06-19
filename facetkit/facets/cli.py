@@ -4,7 +4,7 @@
 from textwrap import dedent
 
 from typing import Any, Callable, Dict
-from py_container.types import Command, Facet
+from facetkit.types import Command, Facet
 
 #===============================================================================
 # DEFINITIONS

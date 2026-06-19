@@ -1,6 +1,6 @@
 import pytest
 
-from py_container import Container, CliFacet, GuiFacet, ServiceFacet, TuiFacet, WebFacet
+from facetkit import Container, CliFacet, GuiFacet, ServiceFacet, TuiFacet, WebFacet
 
 
 class TestContainerFacets:

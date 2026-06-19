@@ -30,7 +30,7 @@ dependencies = [
 ]
 
 [tool.hatch.version]
-path = "py_container/__init__.py"
+path = "facetkit/__init__.py"
 
 [project.optional-dependencies]
 dev = [
@@ -38,7 +38,7 @@ dev = [
 ]
 
 [tool.hatch.build.targets.wheel]
-packages = ["py_container"]
+packages = ["facetkit"]
 
 [tool.pytest.ini_options]
 pythonpath = ["."]

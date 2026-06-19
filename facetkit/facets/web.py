@@ -2,7 +2,7 @@
 # DEPENDENCIES
 
 from typing import Any, Callable, Dict, Optional, Sequence, Union
-from py_container.types import Facet, ErrorHandlerDescriptor, MiddlewareDescriptor, RouteDescriptor
+from facetkit.types import Facet, ErrorHandlerDescriptor, MiddlewareDescriptor, RouteDescriptor
 
 #===============================================================================
 # DEFINITIONS

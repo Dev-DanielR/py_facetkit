@@ -3,8 +3,8 @@ from unittest.mock import MagicMock
 import glom
 import pytest
 
-import py_container.container as container_module
-from py_container import Container
+import facetkit.container as container_module
+from facetkit import Container
 
 
 class FakeComponent:

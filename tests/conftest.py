@@ -1,6 +1,6 @@
 import pytest
 
-from py_container import Container
+from facetkit import Container
 
 
 @pytest.fixture
@@ -15,7 +15,7 @@ def container(config):
 
 @pytest.fixture
 def composed_app(container):
-    from py_container import CliFacet, ServiceFacet
+    from facetkit import CliFacet, ServiceFacet
 
     container.mount_facet("cli", CliFacet())
     container.mount_facet("service", ServiceFacet())

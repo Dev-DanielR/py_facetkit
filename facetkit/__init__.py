@@ -1,5 +1,5 @@
-from py_container.container import Container
-from py_container.types import (
+from facetkit.container import Container
+from facetkit.types import (
     Component,
     Facet,
     Command,
@@ -14,7 +14,7 @@ from py_container.types import (
     MiddlewareDescriptor,
     ErrorHandlerDescriptor,
 )
-from py_container.facets import CliFacet, ServiceFacet, TuiFacet, GuiFacet, WebFacet
+from facetkit.facets import CliFacet, ServiceFacet, TuiFacet, GuiFacet, WebFacet
 
 __all__ = [
     "Container",

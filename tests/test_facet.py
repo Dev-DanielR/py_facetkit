@@ -1,4 +1,4 @@
-from py_container import CliFacet, GuiFacet, ServiceFacet, TuiFacet, WebFacet
+from facetkit import CliFacet, GuiFacet, ServiceFacet, TuiFacet, WebFacet
 
 
 class TestCliFacet:

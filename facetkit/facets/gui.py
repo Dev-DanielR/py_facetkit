@@ -2,7 +2,7 @@
 # DEPENDENCIES
 
 from typing import Any, Callable, Dict, Optional
-from py_container.types import Facet, LayoutDescriptor, MenuDescriptor, ToolbarDescriptor, WidgetDescriptor
+from facetkit.types import Facet, LayoutDescriptor, MenuDescriptor, ToolbarDescriptor, WidgetDescriptor
 
 #===============================================================================
 # DEFINITIONS

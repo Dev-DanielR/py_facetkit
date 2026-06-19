@@ -5,7 +5,7 @@ from collections import namedtuple
 from typing import TYPE_CHECKING, Any, Protocol
 
 if TYPE_CHECKING:
-    from py_container.container import Container
+    from facetkit.container import Container
 
 #===============================================================================
 # DEFINITIONS

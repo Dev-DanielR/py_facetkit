@@ -2,7 +2,7 @@
 # DEPENDENCIES
 
 from typing import Any, Callable, Dict, Optional
-from py_container.types import Facet, KeybindingDescriptor, ScreenDescriptor
+from facetkit.types import Facet, KeybindingDescriptor, ScreenDescriptor
 
 #===============================================================================
 # DEFINITIONS
