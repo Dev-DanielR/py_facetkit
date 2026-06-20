@@ -4,7 +4,12 @@ import glom
 import pytest
 
 import facetkit.container as container_module
-from facetkit import Container
+from facetkit import (
+    Container,
+    DependentComponentsError,
+    DuplicateComponentError,
+    MissingComponentDependencyError,
+)
 
 
 class FakeComponent:
@@ -106,6 +111,20 @@ class TestContainerAddComponent:
         assert container.components["logger"] is new
         assert container in new.attached_to
 
+    def test_blocks_duplicate_component_when_overwrite_disabled(self, container):
+        first = FakeComponent()
+        second = FakeComponent()
+
+        container.add_component("logger", first)
+
+        with pytest.raises(DuplicateComponentError) as exc:
+            container.add_component("logger", second, overwrite=False)
+
+        assert exc.value.name == "logger"
+        assert container.components["logger"] is first
+        assert second.attached_to == []
+        assert first.detached_from == []
+
 
 class TestContainerRemoveComponent:
     def test_removes_component(self, container):
@@ -134,3 +153,87 @@ class TestContainerRemoveComponent:
         container.remove_component("logger")
 
         comp.detach.assert_not_called()
+
+
+class TestComponentDependencies:
+    def test_attach_succeeds_when_required_components_present(self, container):
+        class Logger(FakeComponent):
+            pass
+
+        class Api(FakeComponent):
+            required_components = ("logger",)
+
+        container.add_component("logger", Logger())
+        container.add_component("api", Api())
+
+        assert "api" in container.components
+        assert container in container.components["api"].attached_to
+
+    def test_attach_fails_when_required_component_missing(self, container):
+        class Api(FakeComponent):
+            required_components = ("logger",)
+
+        with pytest.raises(MissingComponentDependencyError) as exc:
+            container.add_component("api", Api())
+
+        assert exc.value.component == "api"
+        assert exc.value.missing == ("logger",)
+        assert "api" not in container.components
+
+    def test_attach_does_not_run_when_requirements_unmet(self, container):
+        class Api(FakeComponent):
+            required_components = ("logger",)
+
+        api = Api()
+        with pytest.raises(MissingComponentDependencyError):
+            container.add_component("api", api)
+
+        assert api.attached_to == []
+
+    def test_remove_fails_when_other_components_depend_on_it(self, container):
+        class Logger(FakeComponent):
+            pass
+
+        class Api(FakeComponent):
+            required_components = ("logger",)
+
+        container.add_component("logger", Logger())
+        container.add_component("api", Api())
+
+        with pytest.raises(DependentComponentsError) as exc:
+            container.remove_component("logger")
+
+        assert exc.value.component == "logger"
+        assert exc.value.dependents == ("api",)
+        assert "logger" in container.components
+
+    def test_remove_succeeds_after_dependents_removed(self, container):
+        class Logger(FakeComponent):
+            pass
+
+        class Api(FakeComponent):
+            required_components = ("logger",)
+
+        container.add_component("logger", Logger())
+        container.add_component("api", Api())
+
+        container.remove_component("api")
+        container.remove_component("logger")
+
+        assert container.components == {}
+
+    def test_replacing_component_skips_dependent_check(self, container):
+        class Logger(FakeComponent):
+            pass
+
+        class Api(FakeComponent):
+            required_components = ("logger",)
+
+        container.add_component("logger", Logger())
+        container.add_component("api", Api())
+
+        replacement = Logger()
+        container.add_component("logger", replacement)
+
+        assert container.components["logger"] is replacement
+        assert "api" in container.components
