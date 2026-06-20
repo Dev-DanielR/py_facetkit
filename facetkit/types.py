@@ -2,7 +2,7 @@
 # DEPENDENCIES
 
 from collections import namedtuple
-from typing import TYPE_CHECKING, Any, Protocol
+from typing import TYPE_CHECKING, Any, ClassVar, Protocol
 
 if TYPE_CHECKING:
     from facetkit.container import Container
@@ -17,6 +17,17 @@ class Facet(Protocol):
     def clear(self) -> None: ...
 
 class Component(Protocol):
+    """Composable plugin registered on a Container.
+
+    Optional class attributes:
+        required_components: names of components that must already be
+            registered before attach runs.
+        required_facets: mount names of facets that must already be
+            mounted before attach runs.
+    """
+
+    required_components: ClassVar[tuple[str, ...]]
+    required_facets: ClassVar[tuple[str, ...]]
     def attach(self, ctx: 'Container') -> None: ...
     def detach(self, ctx: 'Container') -> None: ...
 
