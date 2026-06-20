@@ -17,3 +17,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - CLI command descriptions derived from handler docstrings
 
 [0.1.0]: https://github.com/Dev-DanielR/py_facetkit/releases/tag/v0.1.0
+
+## [0.2.0] - 2026-06-19
+
+### Added
+
+- `Container.get()` now does a strict check if a default value is omitted
+
+[0.2.0]: https://github.com/Dev-DanielR/py_facetkit/releases/tag/v0.2.0
