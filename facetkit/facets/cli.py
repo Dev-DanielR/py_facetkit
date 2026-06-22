@@ -15,12 +15,12 @@ class CliFacet(Facet):
         self.name     = "cli"
         self.commands : Dict[str, Command] = {}
 
-    def add_command(self, name: str, handler: Callable[..., Any]) -> None:
+    def add_command(self, command_id: str, handler: Callable[..., Any]) -> None:
         doc = handler.__doc__ or ""
-        self.commands[name] = Command(name, handler, dedent(doc).strip())
+        self.commands[command_id] = Command(command_id, handler, dedent(doc).strip())
 
-    def remove_command(self, name: str) -> None:
-        self.commands.pop(name, None)
+    def remove_command(self, command_id: str) -> None:
+        self.commands.pop(command_id, None)
 
     def clear(self) -> None:
         self.commands.clear()

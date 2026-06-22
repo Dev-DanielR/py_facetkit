@@ -17,27 +17,27 @@ class WebFacet(Facet):
 
     def add_route(
         self,
-        name: str,
+        route_id: str,
         path: str,
         handler: Callable[..., Any],
         methods: Sequence[str] = ("GET",),
     ) -> None:
-        self.routes[name] = RouteDescriptor(path, tuple(methods), handler, name)
+        self.routes[route_id] = RouteDescriptor(route_id, path, tuple(methods), handler)
 
-    def remove_route(self, name: str) -> None:
-        self.routes.pop(name, None)
+    def remove_route(self, route_id: str) -> None:
+        self.routes.pop(route_id, None)
 
-    def add_middleware(self, name: str, handler: Callable[..., Any], priority: int = 0) -> None:
-        self.middleware[name] = MiddlewareDescriptor(name, handler, priority)
+    def add_middleware(self, middleware_id: str, handler: Callable[..., Any], priority: int = 0) -> None:
+        self.middleware[middleware_id] = MiddlewareDescriptor(middleware_id, handler, priority)
 
-    def remove_middleware(self, name: str) -> None:
-        self.middleware.pop(name, None)
+    def remove_middleware(self, middleware_id: str) -> None:
+        self.middleware.pop(middleware_id, None)
 
-    def add_error_handler(self, code: Union[int, str], handler: Callable[..., Any]) -> None:
-        self.error_handlers[str(code)] = ErrorHandlerDescriptor(code, handler)
+    def add_error_handler(self, error_handler_id: Union[int, str], handler: Callable[..., Any]) -> None:
+        self.error_handlers[str(error_handler_id)] = ErrorHandlerDescriptor(error_handler_id, handler)
 
-    def remove_error_handler(self, code: Union[int, str]) -> None:
-        self.error_handlers.pop(str(code), None)
+    def remove_error_handler(self, error_handler_id: Union[int, str]) -> None:
+        self.error_handlers.pop(str(error_handler_id), None)
 
     def clear(self) -> None:
         self.routes.clear()

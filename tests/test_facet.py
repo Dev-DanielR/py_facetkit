@@ -15,7 +15,7 @@ class TestCliFacet:
             return "ok"
 
         facet.add_command("ping", ping)
-        assert facet.commands["ping"].name == "ping"
+        assert facet.commands["ping"].id == "ping"
         assert facet.commands["ping"].callable is ping
         assert facet.commands["ping"].description == "Ping the server."
 
@@ -58,7 +58,7 @@ class TestServiceFacet:
         factory = lambda: None
 
         facet.add_task("worker", factory, interval=5.0)
-        assert facet.tasks["worker"].name == "worker"
+        assert facet.tasks["worker"].id == "worker"
         assert facet.tasks["worker"].factory is factory
         assert facet.tasks["worker"].interval == 5.0
 
@@ -97,7 +97,7 @@ class TestTuiFacet:
         factory = lambda: None
 
         facet.add_screen("home", factory, "Home")
-        assert facet.screens["home"].name == "home"
+        assert facet.screens["home"].id == "home"
         assert facet.screens["home"].factory is factory
         assert facet.screens["home"].title == "Home"
 
@@ -116,11 +116,12 @@ class TestTuiFacet:
         facet = TuiFacet()
         handler = lambda: None
 
-        facet.add_keybinding("home:q", "q", handler, screen="home", priority=10)
+        facet.add_keybinding("home:q", "q", handler, screen_id="home", priority=10)
         binding = facet.keybindings["home:q"]
         assert binding.key == "q"
         assert binding.handler is handler
-        assert binding.screen == "home"
+        assert binding.id == "home:q"
+        assert binding.screen_id == "home"
         assert binding.priority == 10
 
         facet.remove_keybinding("home:q")
@@ -150,11 +151,11 @@ class TestGuiFacet:
         facet = GuiFacet()
         factory = lambda: None
 
-        facet.add_widget("sidebar", factory, parent="root", layout_hints={"width": 240})
+        facet.add_widget("sidebar", factory, parent_id="root", layout_hints={"width": 240})
         widget = facet.widgets["sidebar"]
         assert widget.id == "sidebar"
         assert widget.factory is factory
-        assert widget.parent == "root"
+        assert widget.parent_id == "root"
         assert widget.layout_hints == {"width": 240}
 
         facet.remove_widget("sidebar")
@@ -165,11 +166,11 @@ class TestGuiFacet:
         menu_factory = lambda: None
         toolbar_factory = lambda: None
 
-        facet.add_menu("file", menu_factory, parent="menubar")
-        facet.add_toolbar("main", toolbar_factory, parent="window")
+        facet.add_menu("file", menu_factory, parent_id="menubar")
+        facet.add_toolbar("main", toolbar_factory, parent_id="window")
 
-        assert facet.menus["file"].parent == "menubar"
-        assert facet.toolbars["main"].parent == "window"
+        assert facet.menus["file"].parent_id == "menubar"
+        assert facet.toolbars["main"].parent_id == "window"
 
         facet.remove_menu("file")
         facet.remove_toolbar("main")
@@ -216,7 +217,7 @@ class TestWebFacet:
         assert route.path == "/users"
         assert route.methods == ("GET", "POST")
         assert route.handler is handler
-        assert route.name == "users"
+        assert route.id == "users"
 
         facet.remove_route("users")
         assert "users" not in facet.routes
@@ -227,7 +228,7 @@ class TestWebFacet:
 
         facet.add_middleware("auth", handler, priority=100)
         middleware = facet.middleware["auth"]
-        assert middleware.name == "auth"
+        assert middleware.id == "auth"
         assert middleware.handler is handler
         assert middleware.priority == 100
 
@@ -239,7 +240,7 @@ class TestWebFacet:
         handler = lambda: None
 
         facet.add_error_handler(404, handler)
-        assert facet.error_handlers["404"].code == 404
+        assert facet.error_handlers["404"].id == 404
         assert facet.error_handlers["404"].handler is handler
 
         facet.remove_error_handler(404)

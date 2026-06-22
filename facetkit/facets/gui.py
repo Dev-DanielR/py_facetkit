@@ -20,22 +20,22 @@ class GuiFacet(Facet):
         self,
         widget_id: str,
         factory: Callable[..., Any],
-        parent: Optional[str] = None,
+        parent_id: Optional[str] = None,
         layout_hints: Optional[Dict[str, Any]] = None,
     ) -> None:
-        self.widgets[widget_id] = WidgetDescriptor(widget_id, factory, parent, layout_hints or {})
+        self.widgets[widget_id] = WidgetDescriptor(widget_id, factory, parent_id, layout_hints or {})
 
     def remove_widget(self, widget_id: str) -> None:
         self.widgets.pop(widget_id, None)
 
-    def add_menu(self, menu_id: str, factory: Callable[..., Any], parent: Optional[str] = None) -> None:
-        self.menus[menu_id] = MenuDescriptor(menu_id, factory, parent)
+    def add_menu(self, menu_id: str, factory: Callable[..., Any], parent_id: Optional[str] = None) -> None:
+        self.menus[menu_id] = MenuDescriptor(menu_id, factory, parent_id)
 
     def remove_menu(self, menu_id: str) -> None:
         self.menus.pop(menu_id, None)
 
-    def add_toolbar(self, toolbar_id: str, factory: Callable[..., Any], parent: Optional[str] = None) -> None:
-        self.toolbars[toolbar_id] = ToolbarDescriptor(toolbar_id, factory, parent)
+    def add_toolbar(self, toolbar_id: str, factory: Callable[..., Any], parent_id: Optional[str] = None) -> None:
+        self.toolbars[toolbar_id] = ToolbarDescriptor(toolbar_id, factory, parent_id)
 
     def remove_toolbar(self, toolbar_id: str) -> None:
         self.toolbars.pop(toolbar_id, None)

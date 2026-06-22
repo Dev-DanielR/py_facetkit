@@ -5,9 +5,9 @@ import glom
 
 from typing import Dict, Any
 from facetkit.exceptions import (
-    DependentComponentsError,
     DuplicateComponentError,
     DuplicateFacetError,
+    ComponentInUseError,
     FacetInUseError,
     MissingComponentDependencyError,
     MissingFacetDependencyError,
@@ -45,75 +45,76 @@ class Container:
             if default is _UNSET: raise
             return default
 
-    def mount_facet(self, name: str, facet: Facet, *, overwrite: bool = True) -> None:
-        if name in self.facets:
-            if not overwrite: raise DuplicateFacetError(name)
-            self._unmount_facet(name, check_dependents=False)
-        self.facets[name] = facet
+    def bind_facet(self, facet_id: str, facet: Facet, *, overwrite: bool = True) -> None:
+        if facet_id in self.facets:
+            if not overwrite: raise DuplicateFacetError(facet_id)
+            self._unbind_facet(facet_id, check_dependents=False)
+        self.facets[facet_id] = facet
 
-    def unmount_facet(self, name: str) -> None:
-        self._unmount_facet(name, check_dependents=True)
+    def unbind_facet(self, facet_id: str) -> None:
+        self._unbind_facet(facet_id, check_dependents=True)
 
-    def add_component(self, name: str, comp: Component, *, overwrite: bool = True) -> None:
-        """Register a component and attach it to this container."""
+    def bind_component(self, component_id: str, comp: Component, *, overwrite: bool = True) -> None:
+        """Bind a component and invoke its on_bind hook."""
 
-        if name in self.components and not overwrite:
-            raise DuplicateComponentError(name)
-        self._validate_attach_requirements(name, comp)
-        if name in self.components: self._detach_component(name, check_dependents=False)
-        comp.attach(self)
-        self.components[name] = comp
+        if component_id in self.components and not overwrite:
+            raise DuplicateComponentError(component_id)
+        self._validate_bind_requirements(component_id, comp)
+        if component_id in self.components:
+            self._unbind_component(component_id, check_dependents=False)
+        comp.on_bind(self)
+        self.components[component_id] = comp
 
-    def remove_component(self, name: str) -> None:
-        """Remove a component and detach it from this container."""
+    def unbind_component(self, component_id: str) -> None:
+        """Unbind a component and invoke its on_unbind hook."""
 
-        self._detach_component(name, check_dependents=True)
+        self._unbind_component(component_id, check_dependents=True)
 
     # Internal API =============================================================
-
-    def _required_components(self, comp: Component) -> tuple[str, ...]:
-        return getattr(type(comp), "required_components", ())
 
     def _required_facets(self, comp: Component) -> tuple[str, ...]:
         return getattr(type(comp), "required_facets", ())
 
-    def _validate_attach_requirements(self, name: str, comp: Component) -> None:
+    def _validate_facet_unbind_requirements(self, facet_id: str) -> None:
+        dependents = tuple(
+            comp_id for comp_id, comp in self.components.items()
+            if facet_id in self._required_facets(comp)
+        )
+        if dependents:
+            raise FacetInUseError(facet_id, dependents)
+
+    def _unbind_facet(self, facet_id: str, *, check_dependents: bool) -> None:
+        if check_dependents: self._validate_facet_unbind_requirements(facet_id)
+        facet = self.facets.pop(facet_id, None)
+        if facet: facet.clear()
+
+    def _required_components(self, comp: Component) -> tuple[str, ...]:
+        return getattr(type(comp), "required_components", ())
+
+    def _validate_bind_requirements(self, component_id: str, comp: Component) -> None:
         missing_components = tuple(
             req for req in self._required_components(comp)
             if req not in self.components
         )
         if missing_components:
-            raise MissingComponentDependencyError(name, missing_components)
+            raise MissingComponentDependencyError(component_id, missing_components)
 
         missing_facets = tuple(
             req for req in self._required_facets(comp)
             if req not in self.facets
         )
         if missing_facets:
-            raise MissingFacetDependencyError(name, missing_facets)
+            raise MissingFacetDependencyError(component_id, missing_facets)
 
-    def _validate_detach_requirements(self, name: str) -> None:
+    def _validate_unbind_requirements(self, component_id: str) -> None:
         dependents = tuple(
-            comp_name for comp_name, comp in self.components.items()
-            if comp_name != name and name in self._required_components(comp)
+            other_id for other_id, comp in self.components.items()
+            if other_id != component_id and component_id in self._required_components(comp)
         )
         if dependents:
-            raise DependentComponentsError(name, dependents)
+            raise ComponentInUseError(component_id, dependents)
 
-    def _validate_facet_unmount_requirements(self, name: str) -> None:
-        dependents = tuple(
-            comp_name for comp_name, comp in self.components.items()
-            if name in self._required_facets(comp)
-        )
-        if dependents:
-            raise FacetInUseError(name, dependents)
-
-    def _detach_component(self, name: str, *, check_dependents: bool) -> None:
-        if check_dependents: self._validate_detach_requirements(name)
-        comp = self.components.pop(name, None)
-        if comp: comp.detach(self)
-
-    def _unmount_facet(self, name: str, *, check_dependents: bool) -> None:
-        if check_dependents: self._validate_facet_unmount_requirements(name)
-        facet = self.facets.pop(name, None)
-        if facet: facet.clear()
+    def _unbind_component(self, component_id: str, *, check_dependents: bool) -> None:
+        if check_dependents: self._validate_unbind_requirements(component_id)
+        comp = self.components.pop(component_id, None)
+        if comp: comp.on_unbind(self)

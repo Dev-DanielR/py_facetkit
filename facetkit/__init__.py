@@ -1,6 +1,6 @@
 from facetkit.container import Container
 from facetkit.exceptions import (
-    DependentComponentsError,
+    ComponentInUseError,
     DuplicateComponentError,
     DuplicateFacetError,
     FacetInUseError,
@@ -27,7 +27,7 @@ from facetkit.facets import CliFacet, ServiceFacet, TuiFacet, GuiFacet, WebFacet
 __all__ = [
     "Container",
     "Component",
-    "DependentComponentsError",
+    "ComponentInUseError",
     "DuplicateComponentError",
     "DuplicateFacetError",
     "FacetInUseError",
@@ -52,4 +52,4 @@ __all__ = [
     "WebFacet",
 ]
 
-__version__ = "0.3.0"
+__version__ = "0.4.0"

@@ -6,9 +6,9 @@ facetkit separates three pieces:
 
 | Piece | Role |
 |-------|------|
-| [Container](docs/container.md) | Application root — config, facet mounting, component lifecycle |
+| [Container](docs/container.md) | Application root — config, facet & component binding |
 | [Facet](docs/facet.md) | Passive registry for a surface area (commands, routes, widgets, …) |
-| [Component](docs/component.md) | Plugin that registers into facets on attach and cleans up on detach |
+| [Component](docs/component.md) | Plugin that connects to one or several facets in on_bind and cleans up in on_unbind  |
 
 ```
 Container
@@ -48,8 +48,8 @@ from facetkit import Container, CliFacet, WebFacet
 
 app = Container({"app": {"name": "demo"}})
 
-app.mount_facet("cli", CliFacet())
-app.mount_facet("web", WebFacet())
+app.bind_facet("cli", CliFacet())
+app.bind_facet("web", WebFacet())
 
 def hello():
     """Say hello."""
@@ -64,8 +64,8 @@ Register directly on facets (as above) or through [components](docs/component.md
 ## Documentation
 
 - [Container](docs/container.md) — config, lifecycle, introspection
-- [Facets](docs/facet.md) — facet types, registries, mounting
-- [Components](docs/component.md) — attach/detach, dependencies
+- [Facets](docs/facet.md) — facet types, registries, binding
+- [Components](docs/component.md) — on_bind/on_unbind, dependencies
 - [Examples](docs/examples/composed_app.py) — composed app with logger and status components
 
 ## Development
@@ -75,7 +75,7 @@ pip install -e ".[dev]"
 pytest
 ```
 
-See [CHANGELOG.md](CHANGELOG.md) for release notes. Pre-1.0 (`0.3.0`) — public APIs may change between minor releases.
+See [CHANGELOG.md](CHANGELOG.md) for release notes. Pre-1.0 (`0.4.0`) — public APIs may change between minor releases.
 
 ## License
 

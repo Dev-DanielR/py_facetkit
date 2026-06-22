@@ -12,11 +12,11 @@ from facetkit import Container, CliFacet, ServiceFacet
 
 
 class LoggerComponent:
-    def attach(self, ctx):
-        ctx.facets["service"].add_provider("logger", self)
+    def on_bind(self, container):
+        container.facets["service"].add_provider("logger", self)
 
-    def detach(self, ctx):
-        ctx.facets["service"].remove_provider("logger")
+    def on_unbind(self, container):
+        container.facets["service"].remove_provider("logger")
 
     def info(self, msg):
         print(msg)
@@ -26,14 +26,14 @@ class StatusComponent:
     required_components = ("logger",)
     required_facets = ("cli", "service")
 
-    def attach(self, ctx):
-        self._logger = ctx.components["logger"]
-        ctx.facets["cli"].add_command("status", self.show_status)
-        ctx.facets["service"].add_provider("status", {"healthy": True})
+    def on_bind(self, container):
+        self._logger = container.components["logger"]
+        container.facets["cli"].add_command("status", self.show_status)
+        container.facets["service"].add_provider("status", {"healthy": True})
 
-    def detach(self, ctx):
-        ctx.facets["cli"].remove_command("status")
-        ctx.facets["service"].remove_provider("status")
+    def on_unbind(self, container):
+        container.facets["cli"].remove_command("status")
+        container.facets["service"].remove_provider("status")
 
     def show_status(self):
         """Show application status."""
@@ -43,14 +43,14 @@ class StatusComponent:
 
 def main():
     app = Container({"app": {"name": "demo"}})
-    app.mount_facet("cli", CliFacet())
-    app.mount_facet("service", ServiceFacet())
-    app.add_component("logger", LoggerComponent())
-    app.add_component("status", StatusComponent())
+    app.bind_facet("cli", CliFacet())
+    app.bind_facet("service", ServiceFacet())
+    app.bind_component("logger", LoggerComponent())
+    app.bind_component("status", StatusComponent())
 
     print("Registered CLI commands:")
-    for name, cmd in app.facets["cli"].commands.items():
-        print(f"  {name}: {cmd.description}")
+    for command_id, cmd in app.facets["cli"].commands.items():
+        print(f"  {command_id}: {cmd.description}")
 
 
 if __name__ == "__main__":

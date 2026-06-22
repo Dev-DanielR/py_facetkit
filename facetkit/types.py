@@ -17,42 +17,40 @@ class Facet(Protocol):
     def clear(self) -> None: ...
 
 class Component(Protocol):
-    """Composable plugin registered on a Container.
+    """Composable plugin that connects to a Container.
 
     Optional class attributes:
-        required_components: names of components that must already be
-            registered before attach runs.
-        required_facets: mount names of facets that must already be
-            mounted before attach runs.
+        required_components: ids of components that must already be bound before on_bind runs.
+        required_facets: ids of facets that must already be bound before on_bind runs.
     """
 
     required_components: ClassVar[tuple[str, ...]]
     required_facets: ClassVar[tuple[str, ...]]
-    def attach(self, ctx: 'Container') -> None: ...
-    def detach(self, ctx: 'Container') -> None: ...
+    def on_bind(self, container: 'Container') -> None: ...
+    def on_unbind(self, container: 'Container') -> None: ...
 
 # cli Facet --------------------------------------------------------------------
 
-Command = namedtuple('Command', ['name', 'callable', 'description'])
+Command = namedtuple('Command', ['id', 'callable', 'description'])
 
 # TUI Facet --------------------------------------------------------------------
 
-ScreenDescriptor     = namedtuple('ScreenDescriptor',     ['name', 'factory', 'title'])
-KeybindingDescriptor = namedtuple('KeybindingDescriptor', ['key', 'handler', 'screen', 'priority'])
+ScreenDescriptor     = namedtuple('ScreenDescriptor',     ['id', 'factory', 'title'])
+KeybindingDescriptor = namedtuple('KeybindingDescriptor', ['id', 'key', 'handler', 'screen_id', 'priority'])
 
 # GUI Facet --------------------------------------------------------------------
 
-WidgetDescriptor   = namedtuple('WidgetDescriptor',   ['id', 'factory', 'parent', 'layout_hints'])
-MenuDescriptor     = namedtuple('MenuDescriptor',     ['id', 'factory', 'parent'])
-ToolbarDescriptor  = namedtuple('ToolbarDescriptor',  ['id', 'factory', 'parent'])
+WidgetDescriptor   = namedtuple('WidgetDescriptor',   ['id', 'factory', 'parent_id', 'layout_hints'])
+MenuDescriptor     = namedtuple('MenuDescriptor',     ['id', 'factory', 'parent_id'])
+ToolbarDescriptor  = namedtuple('ToolbarDescriptor',  ['id', 'factory', 'parent_id'])
 LayoutDescriptor   = namedtuple('LayoutDescriptor',   ['id', 'factory', 'hints'])
 
 # Web Facet --------------------------------------------------------------------
 
-RouteDescriptor        = namedtuple('RouteDescriptor',        ['path', 'methods', 'handler', 'name'])
-MiddlewareDescriptor   = namedtuple('MiddlewareDescriptor',   ['name', 'handler', 'priority'])
-ErrorHandlerDescriptor = namedtuple('ErrorHandlerDescriptor', ['code', 'handler'])
+RouteDescriptor        = namedtuple('RouteDescriptor',        ['id', 'path', 'methods', 'handler'])
+MiddlewareDescriptor   = namedtuple('MiddlewareDescriptor',   ['id', 'handler', 'priority'])
+ErrorHandlerDescriptor = namedtuple('ErrorHandlerDescriptor', ['id', 'handler'])
 
 # Service Facet ----------------------------------------------------------------
 
-TaskDescriptor = namedtuple('TaskDescriptor', ['name', 'factory', 'interval'])
+TaskDescriptor = namedtuple('TaskDescriptor', ['id', 'factory', 'interval'])

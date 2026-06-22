@@ -6,7 +6,7 @@ import pytest
 import facetkit.container as container_module
 from facetkit import (
     Container,
-    DependentComponentsError,
+    ComponentInUseError,
     DuplicateComponentError,
     MissingComponentDependencyError,
 )
@@ -14,14 +14,14 @@ from facetkit import (
 
 class FakeComponent:
     def __init__(self):
-        self.attached_to = []
-        self.detached_from = []
+        self.bound_to = []
+        self.unbound_from = []
 
-    def attach(self, ctx):
-        self.attached_to.append(ctx)
+    def on_bind(self, container):
+        self.bound_to.append(container)
 
-    def detach(self, ctx):
-        self.detached_from.append(ctx)
+    def on_unbind(self, container):
+        self.unbound_from.append(container)
 
 
 class TestContainerInit:
@@ -87,138 +87,138 @@ class TestContainerGet:
         assert container.get("config.app.name", default="safe") == "safe"
 
 
-class TestContainerAddComponent:
-    def test_registers_component(self, container):
+class TestContainerBindComponent:
+    def test_binds_component(self, container):
         comp = FakeComponent()
-        container.add_component("logger", comp)
+        container.bind_component("logger", comp)
 
         assert container.components["logger"] is comp
 
-    def test_attaches_component_to_container(self, container):
+    def test_on_bind_called_when_component_bound(self, container):
         comp = FakeComponent()
-        container.add_component("logger", comp)
+        container.bind_component("logger", comp)
 
-        assert container in comp.attached_to
+        assert container in comp.bound_to
 
-    def test_replacing_component_detaches_old_one(self, container):
+    def test_replacing_component_calls_on_unbind_on_old_one(self, container):
         old = FakeComponent()
         new = FakeComponent()
 
-        container.add_component("logger", old)
-        container.add_component("logger", new)
+        container.bind_component("logger", old)
+        container.bind_component("logger", new)
 
-        assert container in old.detached_from
+        assert container in old.unbound_from
         assert container.components["logger"] is new
-        assert container in new.attached_to
+        assert container in new.bound_to
 
     def test_blocks_duplicate_component_when_overwrite_disabled(self, container):
         first = FakeComponent()
         second = FakeComponent()
 
-        container.add_component("logger", first)
+        container.bind_component("logger", first)
 
         with pytest.raises(DuplicateComponentError) as exc:
-            container.add_component("logger", second, overwrite=False)
+            container.bind_component("logger", second, overwrite=False)
 
-        assert exc.value.name == "logger"
+        assert exc.value.component_id == "logger"
         assert container.components["logger"] is first
-        assert second.attached_to == []
-        assert first.detached_from == []
+        assert second.bound_to == []
+        assert first.unbound_from == []
 
 
-class TestContainerRemoveComponent:
-    def test_removes_component(self, container):
+class TestContainerUnbindComponent:
+    def test_unbinds_component(self, container):
         comp = FakeComponent()
-        container.add_component("logger", comp)
+        container.bind_component("logger", comp)
 
-        container.remove_component("logger")
+        container.unbind_component("logger")
 
         assert "logger" not in container.components
 
-    def test_detaches_component_from_container(self, container):
+    def test_on_unbind_called_when_component_unbound(self, container):
         comp = FakeComponent()
-        container.add_component("logger", comp)
+        container.bind_component("logger", comp)
 
-        container.remove_component("logger")
+        container.unbind_component("logger")
 
-        assert container in comp.detached_from
+        assert container in comp.unbound_from
 
-    def test_removing_missing_component_is_noop(self, container):
-        container.remove_component("missing")
+    def test_unbinding_missing_component_is_noop(self, container):
+        container.unbind_component("missing")
 
         assert container.components == {}
 
-    def test_remove_does_not_call_detach_when_missing(self, container):
+    def test_unbind_does_not_call_on_unbind_when_missing(self, container):
         comp = MagicMock()
-        container.remove_component("logger")
+        container.unbind_component("logger")
 
-        comp.detach.assert_not_called()
+        comp.on_unbind.assert_not_called()
 
 
 class TestComponentDependencies:
-    def test_attach_succeeds_when_required_components_present(self, container):
+    def test_on_bind_succeeds_when_required_components_present(self, container):
         class Logger(FakeComponent):
             pass
 
         class Api(FakeComponent):
             required_components = ("logger",)
 
-        container.add_component("logger", Logger())
-        container.add_component("api", Api())
+        container.bind_component("logger", Logger())
+        container.bind_component("api", Api())
 
         assert "api" in container.components
-        assert container in container.components["api"].attached_to
+        assert container in container.components["api"].bound_to
 
-    def test_attach_fails_when_required_component_missing(self, container):
+    def test_on_bind_fails_when_required_component_missing(self, container):
         class Api(FakeComponent):
             required_components = ("logger",)
 
         with pytest.raises(MissingComponentDependencyError) as exc:
-            container.add_component("api", Api())
+            container.bind_component("api", Api())
 
-        assert exc.value.component == "api"
+        assert exc.value.component_id == "api"
         assert exc.value.missing == ("logger",)
         assert "api" not in container.components
 
-    def test_attach_does_not_run_when_requirements_unmet(self, container):
+    def test_on_bind_does_not_run_when_requirements_unmet(self, container):
         class Api(FakeComponent):
             required_components = ("logger",)
 
         api = Api()
         with pytest.raises(MissingComponentDependencyError):
-            container.add_component("api", api)
+            container.bind_component("api", api)
 
-        assert api.attached_to == []
+        assert api.bound_to == []
 
-    def test_remove_fails_when_other_components_depend_on_it(self, container):
+    def test_unbind_fails_when_other_components_depend_on_it(self, container):
         class Logger(FakeComponent):
             pass
 
         class Api(FakeComponent):
             required_components = ("logger",)
 
-        container.add_component("logger", Logger())
-        container.add_component("api", Api())
+        container.bind_component("logger", Logger())
+        container.bind_component("api", Api())
 
-        with pytest.raises(DependentComponentsError) as exc:
-            container.remove_component("logger")
+        with pytest.raises(ComponentInUseError) as exc:
+            container.unbind_component("logger")
 
-        assert exc.value.component == "logger"
+        assert exc.value.component_id == "logger"
         assert exc.value.dependents == ("api",)
         assert "logger" in container.components
 
-    def test_remove_succeeds_after_dependents_removed(self, container):
+    def test_unbind_succeeds_after_dependents_unbound(self, container):
         class Logger(FakeComponent):
             pass
 
         class Api(FakeComponent):
             required_components = ("logger",)
 
-        container.add_component("logger", Logger())
-        container.add_component("api", Api())
+        container.bind_component("logger", Logger())
+        container.bind_component("api", Api())
 
-        container.remove_component("api")
-        container.remove_component("logger")
+        container.unbind_component("api")
+        container.unbind_component("logger")
 
         assert container.components == {}
 
@@ -229,11 +229,11 @@ class TestComponentDependencies:
         class Api(FakeComponent):
             required_components = ("logger",)
 
-        container.add_component("logger", Logger())
-        container.add_component("api", Api())
+        container.bind_component("logger", Logger())
+        container.bind_component("api", Api())
 
         replacement = Logger()
-        container.add_component("logger", replacement)
+        container.bind_component("logger", replacement)
 
         assert container.components["logger"] is replacement
         assert "api" in container.components

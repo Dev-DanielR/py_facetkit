@@ -17,6 +17,6 @@ def container(config):
 def composed_app(container):
     from facetkit import CliFacet, ServiceFacet
 
-    container.mount_facet("cli", CliFacet())
-    container.mount_facet("service", ServiceFacet())
+    container.bind_facet("cli", CliFacet())
+    container.bind_facet("service", ServiceFacet())
     return container

@@ -1,6 +1,6 @@
 # Facets
 
-A **Facet** is a passive registry for an application surface — CLI commands, web routes, GUI widgets, background tasks, and so on. Facets collect descriptors; your dispatch layer reads them and runs the app. Mount only what you need on the [Container](container.md).
+A **Facet** is a passive registry for an application surface — CLI commands, web routes, GUI widgets, background tasks, and so on. Facets collect descriptors; your dispatch layer reads them and runs the app. Bind only what you need on the [Container](container.md).
 
 ## Types and exceptions
 
@@ -24,34 +24,34 @@ A **Facet** is a passive registry for an application surface — CLI commands, w
 
 | Exception | When | Attributes |
 |-----------|------|------------|
-| `DuplicateFacetError` | `mount_facet(overwrite=False)` | `.name` |
-| `FacetInUseError` | `unmount_facet` while a component requires the mount name | `.facet`, `.dependents` |
+| `DuplicateFacetError` | `bind_facet(overwrite=False)` | `.facet_id` |
+| `FacetInUseError` | `unbind_facet` while a component requires the facet id | `.facet_id`, `.dependents` |
 
 ## Lifecycle
 
-Facets are mounted and unmounted through the container:
+Facets are bound and unbound through the container:
 
 ```python
 from facetkit import Container, CliFacet, WebFacet
 
 app = Container({})
-app.mount_facet("cli", CliFacet())
-app.unmount_facet("cli")
+app.bind_facet("cli", CliFacet())
+app.unbind_facet("cli")
 ```
 
-**`mount_facet(name, facet, *, overwrite=True)`** — stores the facet under `name`. When `overwrite=True` (the default), an existing mount of the same name is cleared and replaced without a dependent check. Pass `overwrite=False` to raise `DuplicateFacetError` instead:
+**`bind_facet(facet_id, facet, *, overwrite=True)`** — stores the facet under `facet_id`. When `overwrite=True` (the default), an existing binding of the same id is cleared and replaced without a dependent check. Pass `overwrite=False` to raise `DuplicateFacetError` instead:
 
 ```python
-app.mount_facet("cli", CliFacet(), overwrite=False)
+app.bind_facet("cli", CliFacet(), overwrite=False)
 ```
 
-**`unmount_facet(name)`** — pops the facet and calls `clear()` on it. Raises `FacetInUseError` if any attached [component](component.md) lists `name` in `required_facets`. Remove those components first.
+**`unbind_facet(facet_id)`** — pops the facet and calls `clear()` on it. Raises `FacetInUseError` if any bound [component](component.md) lists `facet_id` in `required_facets`. Unbind those components first.
 
-Replacing a facet reuses the mount name — dependent checks are skipped on replacement so the slot stays available.
+Replacing a facet reuses the facet id — dependent checks are skipped on replacement so the slot stays available.
 
 ## Registering entries
 
-Populate registries directly or through [components](component.md) during `attach`:
+Populate registries directly or through [components](component.md) during `on_bind`:
 
 ```python
 def hello():
@@ -64,11 +64,11 @@ app.facets["web"].add_route("hello", "/hello", lambda: {"message": "Hello!"}, me
 
 Each facet exposes typed `add_*` / `remove_*` helpers over plain dict registries. Your application dispatches however you like — argparse, FastAPI, Textual, Qt, etc.
 
-## Mount names
+## Facet ids
 
-The mount name is arbitrary. The library does not require `"cli"` for a `CliFacet`, though consistent naming helps components declare `required_facets`:
+The facet id is arbitrary. The library does not require `"cli"` for a `CliFacet`, though consistent naming helps components declare `required_facets`:
 
 ```python
-app.mount_facet("cli", CliFacet())      # conventional
-app.mount_facet("commands", CliFacet()) # also valid
+app.bind_facet("cli", CliFacet())      # conventional
+app.bind_facet("commands", CliFacet()) # also valid
 ```
